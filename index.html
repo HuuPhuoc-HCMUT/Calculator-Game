@@ -143,6 +143,7 @@ let lives = 1;
 let hearts = document.getElementById("hearts");
 
 function startGame() {
+    document.getElementById('background-music').play();  // Bắt đầu phát nhạc
     timeLeft = 3; // Reset thời gian còn lại khi bắt đầu câu hỏi mới
     document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
 
@@ -247,7 +248,9 @@ function gameOver() {
     document.getElementById("game-over").style.display = "block";
     document.getElementById("score").style.display = "none";
     document.getElementById("timer").style.display = "none";
+    document.getElementById('background-music').pause();  // Dừng nhạc khi game kết thúc
 }
+
 
     </script>
 </body>
