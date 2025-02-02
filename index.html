@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Toán Học</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f9;
+        }
+        .question {
+            font-size: 35px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .answer {
+            display: inline-block;
+            margin: 10px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border: 2px solid #ccc;
+            cursor: pointer;
+            font-size: 22px;
+            width: 120px;
+            transition: all 0.3s ease;
+        }
+        .answer:hover {
+            background-color: #dcdcdc;
+        }
+        .answer.correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .answer.incorrect {
+            background-color: #f44336;
+            color: white;
+        }
+        .game-over {
+            font-size: 26px;
+            margin-top: 20px;
+            color: red;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #game-over {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff5722;
+        }
+        #timer {
+            font-size: 30px;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #ff5722;
+        }
+        #hearts {
+            margin-top: 20px;
+            font-size: 30px;
+        }
+        .heart {
+            color: red;
+        }
+        audio {
+            display: none;
+        }
+        .rules {
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 20px;
+            margin-top: 40px;
+            width: 70%;
+            text-align: left;
+            margin: 0 auto;
+            font-size: 18px;
+        }
+        .rules h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+#start-btn {
+    padding: 10px 20px; /* Giảm padding để làm nút nhỏ lại */
+    font-size: 18px; /* Giảm kích thước chữ */
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+#start-btn:hover {
+    background-color: #45a049;
+}
+    </style>
+</head>
+<body>
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <div class="question" id="question">8 - 7</div>
+    <div class="answer" id="answer1" onclick="checkAnswer(1)">1</div>
+    <div class="answer" id="answer2" onclick="checkAnswer(2)">3</div>
+    <div id="score">Điểm: 0</div>
+    <div id="timer">Thời gian còn lại: 3s</div>
+    <div id="hearts"></div>
+    <div id="game-over" class="game-over" style="display: none;">Trò chơi kết thúc!</div>
+
+    <button id="start-btn" onclick="startGame()">Bắt Đầu</button>
+
+    <div class="rules">
+        <h3>Luật Chơi:</h3>
+        <ul>
+            <li><strong>Điểm:</strong> Mỗi câu trả lời đúng cộng 1 điểm.</li>
+            <li><strong>Sinh Mạng:</strong> Mỗi người chơi bắt đầu với 1 sinh mạng. Mỗi 15 điểm, bạn sẽ được cộng thêm 1 sinh mạng. Nếu bạn trả lời sai, sinh mạng sẽ giảm đi.</li>
+            <li><strong>Mức Độ Khó:</strong> Ban đầu, phép tính sẽ có số từ 1-10. Sau mỗi 10 điểm, độ khó sẽ tăng lên. Mỗi 10 điểm, phạm vi số sẽ tăng lên:
+                <ul>
+                    <li>10 điểm: Số trong phép tính từ 1-99 (2 chữ số).</li>
+                    <li>20 điểm: Số trong phép tính từ 100-999 (3 chữ số).</li>
+                    <li>30 điểm: Số trong phép tính từ 1000-9999 (4 chữ số).</li>
+                </ul>
+            </li>
+            <li><strong>Thời Gian:</strong> Mỗi câu hỏi có 3 giây để trả lời. Nếu hết thời gian, trò chơi sẽ kết thúc.</li>
+        </ul>
+    </div>
+
+    <script>
+        let score = 0;
+        let correctAnswer;
+        let timer;
+        let countdownTimer;
+        let timeLeft = 3;
+        let difficulty = 10;
+        let lives = 1;
+        let hearts = document.getElementById("hearts");
+
+        // Kiểm tra và phát nhạc nền khi người chơi nhấn nút Start
+        function startGame() {
+            // Khởi động lại game khi nhấn Start
+            document.getElementById('background-music').play();
+            document.getElementById('start-btn').style.display = 'none';  // Ẩn nút Start khi đã bắt đầu
+            resetGame();  // Đặt lại tất cả
+        }
+
+        function resetGame() {
+            score = 0;
+            lives = 1;
+            difficulty = 10;
+            updateHearts(); // Cập nhật trái tim
+            document.getElementById("score").textContent = "Điểm: " + score;
+            document.getElementById("game-over").style.display = "none";
+            startGameLoop();
+        }
+
+        function startGameLoop() {
+            let num1 = Math.floor(Math.random() * difficulty) + 1;
+            let num2 = Math.floor(Math.random() * difficulty) + 1;
+            let operator = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
+            let question = `${num1} ${operator} ${num2}`;
+
+            document.getElementById("question").textContent = question;
+
+            // Xử lý phép tính
+            if (operator === '+') {
+                correctAnswer = num1 + num2;
+            } else if (operator === '-') {
+                correctAnswer = num1 - num2;
+            } else if (operator === '*') {
+                correctAnswer = num1 * num2;
+            } else {
+                correctAnswer = Math.round(num1 / num2); // Làm tròn kết quả cho phép chia
+            }
+
+            let wrongAnswer = correctAnswer + (Math.random() > 0.5 ? -1 : 1);
+            let answers = [correctAnswer, wrongAnswer];
+            answers = answers.sort(() => Math.random() - 0.5);
+
+            document.getElementById("answer1").textContent = answers[0];
+            document.getElementById("answer2").textContent = answers[1];
+
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected) {
+            clearInterval(countdownTimer);
+
+            let selectedAnswer = document.getElementById("answer" + selected).textContent;
+
+            if (parseInt(selectedAnswer) === correctAnswer) {
+                score++;
+                document.getElementById("score").textContent = "Điểm: " + score;
+
+                if (score % 10 === 0 && score < 30) {
+                    difficulty = 100; // 3 chữ số
+                } else if (score % 20 === 0 && score < 30) {
+                    difficulty = 1000; // 4 chữ số
+                }
+
+                if (score % 15 === 0) {
+                    lives++;
+                }
+
+                highlightAnswer(selected, 'correct');
+                setTimeout(() => {
+                    startGameLoop();
+                }, 500);
+            } else {
+                if (lives > 1) {
+                    lives--;
+                    highlightAnswer(selected, 'incorrect');
+                    setTimeout(() => {
+                        startGameLoop();
+                    }, 500);
+                } else {
+                    highlightAnswer(selected, 'incorrect');
+                    setTimeout(() => {
+                        gameOver();
+                    }, 500);
+                }
+            }
+        }
+
+        function highlightAnswer(selected, status) {
+            let answerElement = document.getElementById("answer" + selected);
+            if (status === 'correct') {
+                answerElement.classList.add('correct');
+                setTimeout(() => {
+                    answerElement.classList.remove('correct');
+                }, 150);
+            } else {
+                answerElement.classList.add('incorrect');
+                setTimeout(() => {
+                    answerElement.classList.remove('incorrect');
+                }, 150);
+            }
+        }
+
+        function updateHearts() {
+            hearts.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                hearts.innerHTML += `<span class="heart">❤️</span>`;
+            }
+        }
+
+        function gameOver() {
+            document.getElementById("game-over").style.display = "block";
+            document.getElementById("score").style.display = "none";
+            document.getElementById("timer").style.display = "none";
+        }
+    </script>
+</body>
+</html>
