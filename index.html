@@ -143,30 +143,17 @@ let lives = 1;
 let hearts = document.getElementById("hearts");
 
 function startGame() {
-    document.getElementById('background-music').play();
-    document.getElementById('start-btn').style.display = 'none';  // Ẩn nút Start khi đã bắt đầu
-    resetGame();  // Đặt lại tất cả
-}
+    timeLeft = 3; // Reset thời gian còn lại khi bắt đầu câu hỏi mới
+    document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
 
-function resetGame() {
-    score = 0;
-    lives = 1;
-    difficulty = 10;
-    timeLeft = 3; // Reset lại thời gian mỗi khi bắt đầu trò chơi
-    updateHearts(); // Cập nhật trái tim
-    document.getElementById("score").textContent = "Điểm: " + score;
-    document.getElementById("game-over").style.display = "none";
-    startGameLoop();
-}
-
-function startGameLoop() {
     let num1 = Math.floor(Math.random() * difficulty) + 1;
     let num2 = Math.floor(Math.random() * difficulty) + 1;
     let operator = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
     let question = `${num1} ${operator} ${num2}`;
-
+    
     document.getElementById("question").textContent = question;
-
+    
+    // Xử lý phép tính
     if (operator === '+') {
         correctAnswer = num1 + num2;
     } else if (operator === '-') {
@@ -176,14 +163,17 @@ function startGameLoop() {
     } else {
         correctAnswer = Math.round(num1 / num2); // Làm tròn kết quả cho phép chia
     }
-
+    
+    // Tạo đáp án gần đúng
     let wrongAnswer = correctAnswer + (Math.random() > 0.5 ? -1 : 1);
+    
     let answers = [correctAnswer, wrongAnswer];
-    answers = answers.sort(() => Math.random() - 0.5);
+    answers = answers.sort(() => Math.random() - 0.5); // Xáo trộn đáp án
 
     document.getElementById("answer1").textContent = answers[0];
     document.getElementById("answer2").textContent = answers[1];
 
+    // Đếm ngược thời gian
     countdownTimer = setInterval(() => {
         timeLeft--;
         document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
@@ -193,6 +183,8 @@ function startGameLoop() {
             gameOver();
         }
     }, 1000);
+
+    updateHearts(); // Cập nhật số trái tim
 }
 
 function checkAnswer(selected) {
@@ -203,35 +195,27 @@ function checkAnswer(selected) {
     if (parseInt(selectedAnswer) === correctAnswer) {
         score++;
         document.getElementById("score").textContent = "Điểm: " + score;
-
-        if (score % 10 === 0 && score < 30) {
-            difficulty = 100; // 3 chữ số
-        } else if (score % 20 === 0 && score < 30) {
-            difficulty = 1000; // 4 chữ số
-        }
-
         if (score % 15 === 0) {
-            lives++;
+            lives++; // Thêm một sinh mạng khi đạt 15 điểm
         }
-
         highlightAnswer(selected, 'correct');
 
-        // Reset thời gian về 3s và bắt đầu lại
-        timeLeft = 3;
+        // Reset lại thời gian về 3s và bắt đầu câu hỏi mới
+        timeLeft = 3; // Reset thời gian
         setTimeout(() => {
-            startGameLoop();
-        }, 500);
+            startGame(); // Tạo câu hỏi mới và bắt đầu lại đếm thời gian
+        }, 500); // Chờ 0.5s trước khi tạo câu hỏi mới
     } else {
         if (lives > 1) {
-            lives--;
+            lives--; // Trừ một sinh mạng
             highlightAnswer(selected, 'incorrect');
             setTimeout(() => {
-                startGameLoop();
+                startGame(); // Tiếp tục game
             }, 500);
         } else {
             highlightAnswer(selected, 'incorrect');
             setTimeout(() => {
-                gameOver();
+                gameOver(); // Kết thúc game khi hết sinh mạng
             }, 500);
         }
     }
