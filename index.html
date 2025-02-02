@@ -133,136 +133,138 @@
     </div>
 
     <script>
-        let score = 0;
-        let correctAnswer;
-        let timer;
-        let countdownTimer;
-        let timeLeft = 3;
-        let difficulty = 10;
-        let lives = 1;
-        let hearts = document.getElementById("hearts");
+ let score = 0;
+let correctAnswer;
+let timer;
+let countdownTimer;
+let timeLeft = 3; // Thời gian ban đầu là 3 giây
+let difficulty = 10;
+let lives = 1;
+let hearts = document.getElementById("hearts");
 
-        // Kiểm tra và phát nhạc nền khi người chơi nhấn nút Start
-        function startGame() {
-            // Khởi động lại game khi nhấn Start
-            document.getElementById('background-music').play();
-            document.getElementById('start-btn').style.display = 'none';  // Ẩn nút Start khi đã bắt đầu
-            resetGame();  // Đặt lại tất cả
-        }
+function startGame() {
+    document.getElementById('background-music').play();
+    document.getElementById('start-btn').style.display = 'none';  // Ẩn nút Start khi đã bắt đầu
+    resetGame();  // Đặt lại tất cả
+}
 
-        function resetGame() {
-            score = 0;
-            lives = 1;
-            difficulty = 10;
-            updateHearts(); // Cập nhật trái tim
-            document.getElementById("score").textContent = "Điểm: " + score;
-            document.getElementById("game-over").style.display = "none";
-            startGameLoop();
-        }
+function resetGame() {
+    score = 0;
+    lives = 1;
+    difficulty = 10;
+    timeLeft = 3; // Reset lại thời gian mỗi khi bắt đầu trò chơi
+    updateHearts(); // Cập nhật trái tim
+    document.getElementById("score").textContent = "Điểm: " + score;
+    document.getElementById("game-over").style.display = "none";
+    startGameLoop();
+}
 
-        function startGameLoop() {
-            let num1 = Math.floor(Math.random() * difficulty) + 1;
-            let num2 = Math.floor(Math.random() * difficulty) + 1;
-            let operator = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
-            let question = `${num1} ${operator} ${num2}`;
+function startGameLoop() {
+    let num1 = Math.floor(Math.random() * difficulty) + 1;
+    let num2 = Math.floor(Math.random() * difficulty) + 1;
+    let operator = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
+    let question = `${num1} ${operator} ${num2}`;
 
-            document.getElementById("question").textContent = question;
+    document.getElementById("question").textContent = question;
 
-            // Xử lý phép tính
-            if (operator === '+') {
-                correctAnswer = num1 + num2;
-            } else if (operator === '-') {
-                correctAnswer = num1 - num2;
-            } else if (operator === '*') {
-                correctAnswer = num1 * num2;
-            } else {
-                correctAnswer = Math.round(num1 / num2); // Làm tròn kết quả cho phép chia
-            }
+    if (operator === '+') {
+        correctAnswer = num1 + num2;
+    } else if (operator === '-') {
+        correctAnswer = num1 - num2;
+    } else if (operator === '*') {
+        correctAnswer = num1 * num2;
+    } else {
+        correctAnswer = Math.round(num1 / num2); // Làm tròn kết quả cho phép chia
+    }
 
-            let wrongAnswer = correctAnswer + (Math.random() > 0.5 ? -1 : 1);
-            let answers = [correctAnswer, wrongAnswer];
-            answers = answers.sort(() => Math.random() - 0.5);
+    let wrongAnswer = correctAnswer + (Math.random() > 0.5 ? -1 : 1);
+    let answers = [correctAnswer, wrongAnswer];
+    answers = answers.sort(() => Math.random() - 0.5);
 
-            document.getElementById("answer1").textContent = answers[0];
-            document.getElementById("answer2").textContent = answers[1];
+    document.getElementById("answer1").textContent = answers[0];
+    document.getElementById("answer2").textContent = answers[1];
 
-            countdownTimer = setInterval(() => {
-                timeLeft--;
-                document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
+    countdownTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Thời gian còn lại: ${timeLeft}s`;
 
-                if (timeLeft <= 0) {
-                    clearInterval(countdownTimer);
-                    gameOver();
-                }
-            }, 1000);
-        }
-
-        function checkAnswer(selected) {
+        if (timeLeft <= 0) {
             clearInterval(countdownTimer);
+            gameOver();
+        }
+    }, 1000);
+}
 
-            let selectedAnswer = document.getElementById("answer" + selected).textContent;
+function checkAnswer(selected) {
+    clearInterval(countdownTimer); // Dừng bộ đếm hiện tại
 
-            if (parseInt(selectedAnswer) === correctAnswer) {
-                score++;
-                document.getElementById("score").textContent = "Điểm: " + score;
+    let selectedAnswer = document.getElementById("answer" + selected).textContent;
 
-                if (score % 10 === 0 && score < 30) {
-                    difficulty = 100; // 3 chữ số
-                } else if (score % 20 === 0 && score < 30) {
-                    difficulty = 1000; // 4 chữ số
-                }
+    if (parseInt(selectedAnswer) === correctAnswer) {
+        score++;
+        document.getElementById("score").textContent = "Điểm: " + score;
 
-                if (score % 15 === 0) {
-                    lives++;
-                }
-
-                highlightAnswer(selected, 'correct');
-                setTimeout(() => {
-                    startGameLoop();
-                }, 500);
-            } else {
-                if (lives > 1) {
-                    lives--;
-                    highlightAnswer(selected, 'incorrect');
-                    setTimeout(() => {
-                        startGameLoop();
-                    }, 500);
-                } else {
-                    highlightAnswer(selected, 'incorrect');
-                    setTimeout(() => {
-                        gameOver();
-                    }, 500);
-                }
-            }
+        if (score % 10 === 0 && score < 30) {
+            difficulty = 100; // 3 chữ số
+        } else if (score % 20 === 0 && score < 30) {
+            difficulty = 1000; // 4 chữ số
         }
 
-        function highlightAnswer(selected, status) {
-            let answerElement = document.getElementById("answer" + selected);
-            if (status === 'correct') {
-                answerElement.classList.add('correct');
-                setTimeout(() => {
-                    answerElement.classList.remove('correct');
-                }, 150);
-            } else {
-                answerElement.classList.add('incorrect');
-                setTimeout(() => {
-                    answerElement.classList.remove('incorrect');
-                }, 150);
-            }
+        if (score % 15 === 0) {
+            lives++;
         }
 
-        function updateHearts() {
-            hearts.innerHTML = '';
-            for (let i = 0; i < lives; i++) {
-                hearts.innerHTML += `<span class="heart">❤️</span>`;
-            }
-        }
+        highlightAnswer(selected, 'correct');
 
-        function gameOver() {
-            document.getElementById("game-over").style.display = "block";
-            document.getElementById("score").style.display = "none";
-            document.getElementById("timer").style.display = "none";
+        // Reset thời gian về 3s và bắt đầu lại
+        timeLeft = 3;
+        setTimeout(() => {
+            startGameLoop();
+        }, 500);
+    } else {
+        if (lives > 1) {
+            lives--;
+            highlightAnswer(selected, 'incorrect');
+            setTimeout(() => {
+                startGameLoop();
+            }, 500);
+        } else {
+            highlightAnswer(selected, 'incorrect');
+            setTimeout(() => {
+                gameOver();
+            }, 500);
         }
+    }
+}
+
+function highlightAnswer(selected, status) {
+    let answerElement = document.getElementById("answer" + selected);
+    if (status === 'correct') {
+        answerElement.classList.add('correct');
+        setTimeout(() => {
+            answerElement.classList.remove('correct');
+        }, 150);
+    } else {
+        answerElement.classList.add('incorrect');
+        setTimeout(() => {
+            answerElement.classList.remove('incorrect');
+        }, 150);
+    }
+}
+
+function updateHearts() {
+    hearts.innerHTML = '';
+    for (let i = 0; i < lives; i++) {
+        hearts.innerHTML += `<span class="heart">❤️</span>`;
+    }
+}
+
+function gameOver() {
+    document.getElementById("game-over").style.display = "block";
+    document.getElementById("score").style.display = "none";
+    document.getElementById("timer").style.display = "none";
+}
+
     </script>
 </body>
 </html>
